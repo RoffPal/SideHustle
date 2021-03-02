@@ -45,30 +45,34 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final appColour = Color(int.parse('FF6908D6', radix: 16));
 
+  _MyHomePageState() {
+    this.getWeatherDetails('Abeokuta');
+  }
+
+  Future getWeatherDetails(String word) async {
+    dynamic result = await http.get(
+        'http://api.openweathermap.org/data/2.5/weather?q=$word&appid=6e6d323afd01215cb7d5168672baab6e');
+
+    // var response = jsonDecode(result.body);
+    dynamic response = JsonDecoder().convert(result.body);
+
+    setState(() {
+      tempInDegree = (response['main']['temp'] - 273.15).toString();
+      feelLike = (response['main']['feels_like'] - 273.15).toStringAsFixed(1);
+      humidity = (response['main']['humidity']).toString();
+      pressure = (response['main']['pressure']).toString();
+      windSpeed = (response['wind']['speed']).toString();
+      weather = response['weather'][0]['description'];
+      city = word;
+    });
+  }
+
   PreferredSizeWidget appBarWithSearch() {
     return AppBar(
       title: Container(
         height: 38,
         child: TextField(
-            onSubmitted: (word) {
-              http
-                  .get(
-                      'https://api.openweathermap.org/data/2.5/weather?q=$word&appid=6e6d323afd01215cb7d5168672baab6e')
-                  .then((value) {
-                debugPrint(value.toString());
-                dynamic response = JsonDecoder().convert(value.body);
-
-                setState(() {
-                  tempInDegree = (response.main.temp - 273.15).toString();
-                  feelLike = (response.main.feelLike - 273.15).toString();
-                  humidity = (response.main.humidity).toString();
-                  pressure = (response.main.pressure).toString();
-                  windSpeed = (response.wind.speed).toString();
-                  weather = response.weather.o.description;
-                  city = word;
-                });
-              });
-            },
+            onSubmitted: getWeatherDetails,
             textAlign: TextAlign.justify,
             decoration: InputDecoration(
                 hintText: "Search a city...",
@@ -139,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: appColour,
                         fontSize: 17,
                         fontWeight: FontWeight.bold)),
-                trailing: Text(tempInDegree,
+                trailing: Text(tempInDegree+degree,
                     style: TextStyle(
                         color: appColour,
                         fontSize: 17,
